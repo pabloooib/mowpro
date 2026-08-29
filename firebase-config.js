@@ -5,6 +5,7 @@
 // ==========================================================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAnalytics, isSupported as isAnalyticsSupported } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 import {
   getAuth,
   setPersistence,
@@ -14,13 +15,13 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "funnel-77b45.firebaseapp.com",
-  projectId: "funnel-77b45",
-  storageBucket: "funnel-77b45.firebasestorage.app",
-  messagingSenderId: "346894896581",
-  appId: "1:346894896581:web:0f603a594e5894e5b04fac",
-  measurementId: "G-C6CM9433H3",
+  apiKey: "AIzaSyD9SLrApckR3ZnepzH8a8TsDIpvxAbHl2I",
+  authDomain: "mowpro-bd1c0.firebaseapp.com",
+  projectId: "mowpro-bd1c0",
+  storageBucket: "mowpro-bd1c0.firebasestorage.app",
+  messagingSenderId: "231482090677",
+  appId: "1:231482090677:web:9932ab2b99f36725640afc",
+  measurementId: "G-Q337N1H85F",
 };
 
 // --- Inicialización de la app y servicios ---
@@ -28,6 +29,17 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+
+// Analytics solo se inicializa si el navegador lo soporta (evita errores en
+// entornos sin cookies de terceros o en modo incógnito estricto).
+export let analytics = null;
+isAnalyticsSupported()
+  .then((supported) => {
+    if (supported) analytics = getAnalytics(app);
+  })
+  .catch(() => {
+    /* Analytics no disponible en este entorno; no es crítico para el DAW. */
+  });
 
 // Mantener la sesión activa entre recargas del navegador.
 setPersistence(auth, browserLocalPersistence).catch((err) => {
