@@ -5,83 +5,509 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>MOW PRO — Estación de Producción Musical</title>
 <link rel="stylesheet" href="style.css" />
+
+<!-- ==========================================================================
+     ESTILOS EXCLUSIVOS DE LA PANTALLA DE LOGIN
+     Namespaced bajo #login-screen para no interferir con style.css / el DAW.
+     ========================================================================== -->
+<style>
+  #login-screen {
+    --lg-bg-void: #060708;
+    --lg-bg-deep: #0b0d10;
+    --lg-glass: rgba(16, 19, 24, 0.46);
+    --lg-glass-strong: rgba(20, 24, 30, 0.62);
+    --lg-border: rgba(255, 255, 255, 0.08);
+    --lg-border-blue: rgba(64, 156, 255, 0.4);
+    --lg-blue: #0088ff;
+    --lg-blue-bright: #4fc8ff;
+    --lg-blue-glow: rgba(0, 136, 255, 0.45);
+    --lg-violet: #7c5cff;
+    --lg-text: #f2f5f9;
+    --lg-text-dim: #8b93a1;
+    --lg-text-faint: #545c68;
+    --lg-font: "Segoe UI", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  #login-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font-family: var(--lg-font);
+    background: var(--lg-bg-void);
+    transition: opacity 0.7s ease;
+  }
+  #login-screen.fade-out { opacity: 0; pointer-events: none; }
+
+  /* ---------- Fondo atmosférico: aurora + grano + malla + partículas ---------- */
+  #login-screen .lg-backdrop {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 900px 700px at 12% 8%, rgba(0,136,255,0.16), transparent 60%),
+      radial-gradient(ellipse 800px 800px at 88% 92%, rgba(124,92,255,0.14), transparent 60%),
+      radial-gradient(ellipse 1200px 900px at 50% 50%, rgba(20,24,30,0.4), var(--lg-bg-void) 75%),
+      linear-gradient(160deg, #08090b 0%, #0d0f13 50%, #08090b 100%);
+  }
+
+  #login-screen .lg-aurora {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(110px);
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+  #login-screen .lg-aurora.a1 {
+    width: 560px; height: 560px; top: -220px; left: -140px;
+    background: radial-gradient(circle, rgba(0,136,255,0.55), transparent 70%);
+    animation: lg-float-1 17s ease-in-out infinite alternate;
+  }
+  #login-screen .lg-aurora.a2 {
+    width: 620px; height: 620px; bottom: -260px; right: -180px;
+    background: radial-gradient(circle, rgba(124,92,255,0.45), transparent 70%);
+    animation: lg-float-2 19s ease-in-out infinite alternate;
+  }
+  #login-screen .lg-aurora.a3 {
+    width: 420px; height: 420px; top: 40%; left: 50%; transform: translate(-50%,-50%);
+    background: radial-gradient(circle, rgba(79,200,255,0.25), transparent 72%);
+    animation: lg-pulse 8s ease-in-out infinite;
+  }
+  @keyframes lg-float-1 { from { transform: translate(0,0) scale(1);} to { transform: translate(70px, 50px) scale(1.08);} }
+  @keyframes lg-float-2 { from { transform: translate(0,0) scale(1);} to { transform: translate(-60px, -40px) scale(1.05);} }
+  @keyframes lg-pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 0.9; } }
+
+  #login-screen .lg-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(circle at 50% 45%, black 0%, transparent 72%);
+  }
+
+  #login-screen .lg-grain {
+    position: absolute; inset: 0; opacity: 0.05; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+  }
+
+  /* Barras de ecualizador ambientales, decorativas */
+  #login-screen .lg-eq {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 130px;
+    display: flex; align-items: flex-end; justify-content: center; gap: 5px;
+    opacity: 0.16; pointer-events: none; filter: blur(0.4px);
+  }
+  #login-screen .lg-eq span {
+    width: 4px; border-radius: 2px 2px 0 0;
+    background: linear-gradient(180deg, var(--lg-blue-bright), transparent);
+    animation: lg-eq-bounce 1.6s ease-in-out infinite;
+  }
+
+  @keyframes lg-eq-bounce {
+    0%, 100% { height: 12px; } 50% { height: 90px; }
+  }
+
+  /* ---------- Tarjeta principal ---------- */
+  #login-screen .lg-shell {
+    position: relative;
+    z-index: 2;
+    width: min(880px, 92vw);
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    border-radius: 24px;
+    overflow: hidden;
+    background: var(--lg-glass);
+    backdrop-filter: blur(28px) saturate(150%);
+    -webkit-backdrop-filter: blur(28px) saturate(150%);
+    border: 1px solid var(--lg-border);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.03) inset,
+      0 40px 100px -24px rgba(0,0,0,0.75),
+      0 0 90px -18px var(--lg-blue-glow);
+    animation: lg-card-in 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes lg-card-in {
+    from { opacity: 0; transform: translateY(18px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Borde animado tipo "aura" sutil */
+  #login-screen .lg-shell::before {
+    content: "";
+    position: absolute; inset: -1px;
+    border-radius: 24px;
+    padding: 1px;
+    background: conic-gradient(from 0deg, transparent, rgba(0,136,255,0.55), transparent 30%, transparent 60%, rgba(124,92,255,0.4), transparent 85%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    animation: lg-rotate 9s linear infinite;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  @keyframes lg-rotate { to { transform: rotate(360deg); } }
+
+  /* ---------- Panel izquierdo: identidad de marca ---------- */
+  #login-screen .lg-visual {
+    position: relative;
+    padding: 46px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(0,136,255,0.14), transparent 55%),
+      linear-gradient(165deg, rgba(255,255,255,0.035), rgba(255,255,255,0) 40%),
+      var(--lg-glass-strong);
+    border-right: 1px solid var(--lg-border);
+  }
+
+  #login-screen .lg-emblem-wrap {
+    position: relative;
+    width: 96px; height: 96px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #login-screen .lg-ring {
+    position: absolute; inset: 0; border-radius: 50%;
+    border: 1px solid rgba(0,136,255,0.35);
+  }
+  #login-screen .lg-ring.r1 { animation: lg-spin-slow 14s linear infinite; }
+  #login-screen .lg-ring.r2 { inset: -14px; border-color: rgba(124,92,255,0.22); animation: lg-spin-slow 22s linear infinite reverse; }
+  @keyframes lg-spin-slow { to { transform: rotate(360deg); } }
+
+  #login-screen .lg-emblem { filter: drop-shadow(0 0 22px var(--lg-blue-glow)); }
+
+  #login-screen .lg-brand-name {
+    margin: 26px 0 4px;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 3.5px;
+    color: var(--lg-text);
+  }
+  #login-screen .lg-brand-name span {
+    background: linear-gradient(120deg, var(--lg-blue-bright), var(--lg-blue) 60%, var(--lg-violet));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  #login-screen .lg-tagline {
+    margin: 0 0 22px; font-size: 13px; color: var(--lg-text-dim);
+    max-width: 260px; line-height: 1.55;
+  }
+
+  #login-screen .lg-features { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px; }
+  #login-screen .lg-features li {
+    display: flex; align-items: center; gap: 11px;
+    font-size: 12.5px; color: var(--lg-text-dim);
+  }
+  #login-screen .lg-feature-dot {
+    width: 26px; height: 26px; flex-shrink: 0;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, rgba(0,136,255,0.22), rgba(124,92,255,0.10));
+    border: 1px solid rgba(0,136,255,0.28);
+    font-size: 12px;
+  }
+
+  #login-screen .lg-visual-footer {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10.5px; color: var(--lg-text-faint); letter-spacing: 0.4px;
+  }
+  #login-screen .lg-visual-footer .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #33d17a; box-shadow: 0 0 8px #33d17a;
+  }
+
+  /* ---------- Panel derecho: formularios ---------- */
+  #login-screen .lg-panel {
+    padding: 44px 40px 30px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #login-screen .lg-panel-title { font-size: 19px; font-weight: 700; color: var(--lg-text); margin: 0 0 4px; }
+  #login-screen .lg-panel-sub { font-size: 12.5px; color: var(--lg-text-dim); margin: 0 0 22px; }
+
+  /* Botón de Google */
+  #login-screen .btn-google {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; padding: 12px 14px;
+    border-radius: 11px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--lg-border);
+    color: var(--lg-text);
+    font-size: 13.5px; font-weight: 600;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  }
+  #login-screen .btn-google:hover {
+    background: rgba(255,255,255,0.075);
+    border-color: rgba(255,255,255,0.22);
+    transform: translateY(-1px);
+  }
+  #login-screen .btn-google:active { transform: translateY(0); }
+  #login-screen .btn-google svg { flex-shrink: 0; }
+
+  #login-screen .lg-divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 20px 0; color: var(--lg-text-faint); font-size: 10.5px;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  #login-screen .lg-divider::before,
+  #login-screen .lg-divider::after {
+    content: ""; flex: 1; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--lg-border), transparent);
+  }
+
+  #login-screen .auth-tabs {
+    position: relative;
+    display: flex;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--lg-border);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 22px;
+  }
+  #login-screen .auth-tab {
+    position: relative; z-index: 1;
+    flex: 1; padding: 10px 0; border: none; background: transparent;
+    color: var(--lg-text-dim); font-size: 12.5px; font-weight: 700;
+    letter-spacing: 0.3px; border-radius: 8px;
+    transition: color 0.25s ease;
+  }
+  #login-screen .auth-tab.active { color: #05131f; }
+  #login-screen .lg-tab-glider {
+    position: absolute; top: 4px; bottom: 4px; left: 4px;
+    width: calc(50% - 4px);
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--lg-blue-bright), var(--lg-blue) 75%);
+    box-shadow: 0 4px 16px -4px var(--lg-blue-glow);
+    transition: transform 0.32s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  #login-screen #tab-register.active ~ .lg-tab-glider {
+    transform: translateX(100%);
+  }
+
+  #login-screen .auth-form { display: flex; flex-direction: column; gap: 15px; }
+
+  #login-screen .field { display: flex; flex-direction: column; gap: 6px; position: relative; }
+  #login-screen .field-label {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.9px; color: var(--lg-text-faint);
+  }
+  #login-screen .field input {
+    background: rgba(255,255,255,0.035);
+    border: 1px solid var(--lg-border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--lg-text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+  #login-screen .field input:focus {
+    border-color: var(--lg-blue);
+    background: rgba(0,136,255,0.06);
+    box-shadow: 0 0 0 4px rgba(0,136,255,0.14);
+  }
+  #login-screen .field input::placeholder { color: var(--lg-text-faint); }
+
+  #login-screen .form-error {
+    min-height: 15px; margin: -4px 0 0; font-size: 11.5px; color: #ff5c72;
+  }
+  #login-screen .lg-google-error { min-height: 14px; margin: 8px 0 0; font-size: 11.5px; color: #ff5c72; text-align: center; }
+
+  #login-screen .btn-auth {
+    position: relative; margin-top: 2px; padding: 13px;
+    border: none; border-radius: 11px;
+    background: linear-gradient(135deg, var(--lg-blue-bright), var(--lg-blue) 70%);
+    color: #05131f; font-weight: 700; font-size: 14px; letter-spacing: 0.3px;
+    box-shadow: 0 10px 28px -10px var(--lg-blue-glow);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  }
+  #login-screen .btn-auth:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  #login-screen .btn-auth:active { transform: translateY(0); }
+  #login-screen .btn-auth:disabled { opacity: 0.75; cursor: default; }
+  #login-screen .btn-auth.loading .btn-label { visibility: hidden; }
+  #login-screen .btn-auth .btn-spinner {
+    display: none; position: absolute; inset: 0; margin: auto; width: 16px; height: 16px;
+    border: 2px solid rgba(5,19,31,0.35); border-top-color: #05131f; border-radius: 50%;
+    animation: lg-spin 0.7s linear infinite;
+  }
+  #login-screen .btn-auth.loading .btn-spinner { display: block; }
+  @keyframes lg-spin { to { transform: rotate(360deg); } }
+
+  #login-screen .login-footnote {
+    margin: 22px 0 0; text-align: center; font-size: 10px; color: var(--lg-text-faint); letter-spacing: 0.4px;
+  }
+
+  /* ---------- Responsive: apilar en pantallas angostas ---------- */
+  @media (max-width: 780px) {
+    #login-screen .lg-shell { grid-template-columns: 1fr; width: min(420px, 92vw); }
+    #login-screen .lg-visual { display: none; }
+    #login-screen .lg-panel { padding: 40px 30px 26px; }
+  }
+</style>
 </head>
 <body>
 
 <!-- ==========================================================
-     PANTALLA DE LOGIN / REGISTRO — Glassmorphism / Estudio
+     PANTALLA DE LOGIN / REGISTRO — Glassmorphism premium
      ========================================================== -->
 <div id="login-screen">
-  <div class="login-bg-glow glow-a"></div>
-  <div class="login-bg-glow glow-b"></div>
-  <div class="login-bg-grid"></div>
+  <div class="lg-backdrop"></div>
+  <div class="lg-aurora a1"></div>
+  <div class="lg-aurora a2"></div>
+  <div class="lg-aurora a3"></div>
+  <div class="lg-grid"></div>
+  <div class="lg-grain"></div>
+  <div class="lg-eq" aria-hidden="true"></div>
 
-  <div class="login-card">
-    <div class="brand">
-      <div class="brand-emblem" aria-hidden="true">
-        <svg viewBox="0 0 100 100" width="64" height="64">
-          <defs>
-            <linearGradient id="emblemGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#37c8ff"/>
-              <stop offset="100%" stop-color="#0057ff"/>
-            </linearGradient>
-          </defs>
-          <polygon points="50,3 93,26 93,74 50,97 7,74 7,26"
-                   fill="rgba(15,20,28,0.6)" stroke="url(#emblemGrad)" stroke-width="2.5"/>
-          <text x="50" y="61" text-anchor="middle" font-family="Arial, sans-serif"
-                font-weight="800" font-size="34" fill="url(#emblemGrad)">JP</text>
-        </svg>
+  <div class="lg-shell">
+
+    <!-- ---------------- Panel izquierdo: identidad ---------------- -->
+    <div class="lg-visual">
+      <div>
+        <div class="lg-emblem-wrap">
+          <div class="lg-ring r1"></div>
+          <div class="lg-ring r2"></div>
+          <svg class="lg-emblem" viewBox="0 0 100 100" width="72" height="72">
+            <defs>
+              <linearGradient id="emblemGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4fc8ff"/>
+                <stop offset="55%" stop-color="#0088ff"/>
+                <stop offset="100%" stop-color="#7c5cff"/>
+              </linearGradient>
+            </defs>
+            <polygon points="50,3 93,26 93,74 50,97 7,74 7,26"
+                     fill="rgba(10,14,20,0.65)" stroke="url(#emblemGrad)" stroke-width="2.5"/>
+            <text x="50" y="61" text-anchor="middle" font-family="Arial, sans-serif"
+                  font-weight="800" font-size="34" fill="url(#emblemGrad)">JP</text>
+          </svg>
+        </div>
+
+        <h1 class="lg-brand-name">MOW <span>PRO</span></h1>
+        <p class="lg-tagline">Tu estación de producción musical profesional, directamente en el navegador.</p>
+
+        <ul class="lg-features">
+          <li><span class="lg-feature-dot">🎚️</span> Mezcla multipista en tiempo real</li>
+          <li><span class="lg-feature-dot">🌊</span> Waveforms renderizadas a 60 FPS</li>
+          <li><span class="lg-feature-dot">☁️</span> Tus proyectos, sincronizados en la nube</li>
+        </ul>
       </div>
-      <h1 class="brand-name">MOW <span>PRO</span></h1>
-      <p class="brand-tagline">Estación de producción musical profesional</p>
+
+      <div class="lg-visual-footer">
+        <span class="dot"></span> Acceso seguro · Firebase Authentication
+      </div>
     </div>
 
-    <div class="auth-tabs">
-      <button id="tab-login" class="auth-tab active" type="button">Iniciar sesión</button>
-      <button id="tab-register" class="auth-tab" type="button">Crear cuenta</button>
+    <!-- ---------------- Panel derecho: formularios ---------------- -->
+    <div class="lg-panel">
+      <h2 class="lg-panel-title">Bienvenido de nuevo</h2>
+      <p class="lg-panel-sub">Inicia sesión para continuar donde lo dejaste.</p>
+
+      <button type="button" id="btn-google" class="btn-google">
+        <svg width="18" height="18" viewBox="0 0 48 48">
+          <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
+          <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.6 6.1 29.6 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
+          <path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.6C29.6 35.2 26.9 36 24 36c-5.3 0-9.7-3.1-11.3-7.6l-6.6 5.1C9.5 39.6 16.2 44 24 44z"/>
+          <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.4-2.3 4.4-4.2 5.9l6.6 5.6C39.9 37.1 44 31.3 44 24c0-1.3-.1-2.7-.4-3.5z"/>
+        </svg>
+        Continuar con Google
+      </button>
+      <p class="lg-google-error" id="google-error"></p>
+
+      <div class="lg-divider">o con tu correo</div>
+
+      <div class="auth-tabs" id="auth-tabs">
+        <button id="tab-login" class="auth-tab active" type="button">Iniciar sesión</button>
+        <button id="tab-register" class="auth-tab" type="button">Crear cuenta</button>
+        <div class="lg-tab-glider"></div>
+      </div>
+
+      <!-- Formulario: Iniciar sesión -->
+      <form id="form-login" class="auth-form">
+        <label class="field">
+          <span class="field-label">Correo electrónico</span>
+          <input type="email" id="login-email" placeholder="tu@estudio.com" required autocomplete="email" />
+        </label>
+        <label class="field">
+          <span class="field-label">Contraseña</span>
+          <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" />
+        </label>
+        <p class="form-error" id="login-error"></p>
+        <button type="submit" class="btn-auth">
+          <span class="btn-label">Entrar al estudio</span>
+          <span class="btn-spinner"></span>
+        </button>
+      </form>
+
+      <!-- Formulario: Registro -->
+      <form id="form-register" class="auth-form hidden">
+        <label class="field">
+          <span class="field-label">Correo electrónico</span>
+          <input type="email" id="register-email" placeholder="tu@estudio.com" required autocomplete="email" />
+        </label>
+        <label class="field">
+          <span class="field-label">Contraseña</span>
+          <input type="password" id="register-password" placeholder="Mínimo 6 caracteres" required autocomplete="new-password" />
+        </label>
+        <label class="field">
+          <span class="field-label">Confirmar contraseña</span>
+          <input type="password" id="register-password-confirm" placeholder="••••••••" required autocomplete="new-password" />
+        </label>
+        <p class="form-error" id="register-error"></p>
+        <button type="submit" class="btn-auth">
+          <span class="btn-label">Crear cuenta</span>
+          <span class="btn-spinner"></span>
+        </button>
+      </form>
+
+      <p class="login-footnote">Acceso protegido · Firebase Authentication</p>
     </div>
-
-    <!-- Formulario: Iniciar sesión -->
-    <form id="form-login" class="auth-form">
-      <label class="field">
-        <span class="field-label">Correo electrónico</span>
-        <input type="email" id="login-email" placeholder="tu@estudio.com" required autocomplete="email" />
-      </label>
-      <label class="field">
-        <span class="field-label">Contraseña</span>
-        <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" />
-      </label>
-      <p class="form-error" id="login-error"></p>
-      <button type="submit" class="btn-auth">
-        <span class="btn-label">Entrar al estudio</span>
-        <span class="btn-spinner"></span>
-      </button>
-    </form>
-
-    <!-- Formulario: Registro -->
-    <form id="form-register" class="auth-form hidden">
-      <label class="field">
-        <span class="field-label">Correo electrónico</span>
-        <input type="email" id="register-email" placeholder="tu@estudio.com" required autocomplete="email" />
-      </label>
-      <label class="field">
-        <span class="field-label">Contraseña</span>
-        <input type="password" id="register-password" placeholder="Mínimo 6 caracteres" required autocomplete="new-password" />
-      </label>
-      <label class="field">
-        <span class="field-label">Confirmar contraseña</span>
-        <input type="password" id="register-password-confirm" placeholder="••••••••" required autocomplete="new-password" />
-      </label>
-      <p class="form-error" id="register-error"></p>
-      <button type="submit" class="btn-auth">
-        <span class="btn-label">Crear cuenta</span>
-        <span class="btn-spinner"></span>
-      </button>
-    </form>
-
-    <p class="login-footnote">Acceso protegido · Firebase Authentication</p>
   </div>
 </div>
+
+<!-- Genera las barras del ecualizador decorativo del fondo -->
+<script>
+  (function () {
+    const eq = document.querySelector("#login-screen .lg-eq");
+    if (!eq) return;
+    const bars = 60;
+    for (let i = 0; i < bars; i++) {
+      const bar = document.createElement("span");
+      bar.style.animationDelay = `${(Math.random() * 1.6).toFixed(2)}s`;
+      bar.style.animationDuration = `${(1.1 + Math.random() * 1.2).toFixed(2)}s`;
+      eq.appendChild(bar);
+    }
+  })();
+</script>
+
+<!-- Inicio de sesión con Google (Firebase Authentication) -->
+<script type="module">
+  import { auth } from "./firebase-config.js";
+  import {
+    GoogleAuthProvider,
+    signInWithPopup,
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  const btnGoogle = document.getElementById("btn-google");
+  const googleError = document.getElementById("google-error");
+  const provider = new GoogleAuthProvider();
+
+  btnGoogle.addEventListener("click", async () => {
+    googleError.textContent = "";
+    btnGoogle.disabled = true;
+    try {
+      await signInWithPopup(auth, provider);
+      // onAuthStateChanged en auth.js se encarga de revelar el DAW.
+    } catch (err) {
+      console.error(err);
+      googleError.textContent =
+        err.code === "auth/popup-closed-by-user"
+          ? "Ventana cerrada antes de completar el inicio de sesión."
+          : "No se pudo iniciar sesión con Google. Intenta de nuevo.";
+    } finally {
+      btnGoogle.disabled = false;
+    }
+  });
+</script>
 
 <!-- ==========================================================
      CONSOLA PRINCIPAL DEL DAW
