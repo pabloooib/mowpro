@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOW PRO — Digital Audio Workstation</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ HEADER / TRANSPORT ============ -->
+<header class="transport-bar">
+
+  <div class="brand">
+    <span class="brand-mark">JP</span>
+    <span class="brand-name">MOW <b>PRO</b></span>
+  </div>
+
+  <div class="transport-controls" role="group" aria-label="Controles de transporte">
+    <button id="btn-rewind" class="transport-btn" title="Ir al inicio">⏮</button>
+    <button id="btn-stop" class="transport-btn" title="Stop">⏹</button>
+    <button id="btn-play" class="transport-btn transport-btn--accent" title="Play">▶</button>
+    <button id="btn-pause" class="transport-btn" title="Pausa">⏸</button>
+    <button id="btn-record" class="transport-btn transport-btn--record" title="Armar / Grabar">⏺</button>
+    <button id="btn-loop" class="transport-btn toggle-btn" title="Loop">⟲ LOOP</button>
+  </div>
+
+  <div class="time-display" id="time-display" title="Clic para cambiar de formato">
+    <span id="time-primary">00:00:000</span>
+    <span class="time-label" id="time-mode-label">MIN:SEG:MS</span>
+  </div>
+
+  <div class="transport-extra">
+    <div class="bpm-control">
+      <label for="bpm-input">BPM</label>
+      <input type="number" id="bpm-input" min="20" max="300" value="120" step="1">
+    </div>
+    <button id="btn-metronome" class="transport-btn toggle-btn" title="Metrónomo">♩ CLICK</button>
+    <div class="cpu-meter" title="Carga de audio / DSP">
+      <span class="cpu-label">DSP</span>
+      <div class="cpu-bar-track"><div class="cpu-bar-fill" id="cpu-bar-fill"></div></div>
+      <span class="cpu-pct" id="cpu-pct">0%</span>
+    </div>
+  </div>
+
+</header>
+
+<!-- ============ VIEW SWITCH ============ -->
+<nav class="view-switch" aria-label="Cambiar vista">
+  <button class="view-tab active" data-view="edit-view">EDIT</button>
+  <button class="view-tab" data-view="mixer-view">MIX</button>
+  <div class="view-switch-actions">
+    <button id="btn-add-track" class="ghost-btn">+ Pista</button>
+    <button id="btn-save-session" class="ghost-btn">Guardar sesión</button>
+    <button id="btn-load-session" class="ghost-btn">Abrir sesión</button>
+    <button id="btn-export" class="ghost-btn ghost-btn--accent">Exportar Mezcla</button>
+    <input type="file" id="session-file-input" accept=".json" hidden>
+  </div>
+</nav>
+
+<!-- ============ MAIN WORKSPACE ============ -->
+<main class="workspace">
+
+  <!-- ---------- EDIT VIEW (Timeline) ---------- -->
+  <section id="edit-view" class="view active" aria-label="Vista de edición">
+    <div class="edit-grid">
+
+      <!-- Fixed track header column -->
+      <div class="track-headers" id="track-headers">
+        <div class="ruler-spacer">TRACKS</div>
+        <!-- track header rows injected by JS -->
+      </div>
+
+      <!-- Scrollable timeline column -->
+      <div class="timeline-scroll" id="timeline-scroll">
+        <div class="ruler" id="ruler">
+          <div class="playhead" id="playhead-edit"></div>
+        </div>
+        <div class="track-lanes" id="track-lanes">
+          <!-- track lanes injected by JS -->
+        </div>
+      </div>
+
+    </div>
+    <p class="empty-hint" id="empty-hint">Arrastra archivos de audio (.wav / .mp3) sobre una pista, o pulsa “+ Pista” para comenzar.</p>
+  </section>
+
+  <!-- ---------- MIXER VIEW (Console) ---------- -->
+  <section id="mixer-view" class="view" aria-label="Vista de mezcla">
+    <div class="mixer-console" id="mixer-console">
+      <!-- channel strips injected by JS -->
+      <div class="channel-strip channel-strip--master" id="master-strip">
+        <div class="strip-inserts">
+          <div class="insert-slot insert-slot--label">MASTER BUS</div>
+        </div>
+        <div class="strip-meter-fader">
+          <div class="vu-meter" id="master-vu">
+            <div class="vu-fill vu-fill--l" id="master-vu-l"></div>
+            <div class="vu-fill vu-fill--r" id="master-vu-r"></div>
+          </div>
+          <input type="range" class="fader fader--vertical" id="master-fader" min="0" max="1.5" step="0.01" value="1" orient="vertical">
+        </div>
+        <div class="strip-name">MASTER</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ PLUGIN RACK (EQ / REVERB EDITOR) ============ -->
+<div class="plugin-rack" id="plugin-rack" hidden>
+  <div class="plugin-rack__header">
+    <span id="plugin-rack-title">EQ-3</span>
+    <button id="plugin-rack-close" class="ghost-btn">✕</button>
+  </div>
+  <div class="plugin-rack__body" id="plugin-rack-body"></div>
+</div>
+
+<footer class="status-bar">
+  <span id="status-text">Listo. MOW PRO — DAW gratuito de código abierto.</span>
+  <span id="sample-rate-text"></span>
+</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>
