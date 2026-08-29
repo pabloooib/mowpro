@@ -1,126 +1,190 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MOW PRO — Digital Audio Workstation</title>
-<link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MOW PRO — Estación de Producción Musical</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<!-- ============ HEADER / TRANSPORT ============ -->
-<header class="transport-bar">
+<!-- ==========================================================
+     PANTALLA DE LOGIN / REGISTRO — Glassmorphism / Estudio
+     ========================================================== -->
+<div id="login-screen">
+  <div class="login-bg-glow glow-a"></div>
+  <div class="login-bg-glow glow-b"></div>
+  <div class="login-bg-grid"></div>
 
-  <div class="brand">
-    <span class="brand-mark">JP</span>
-    <span class="brand-name">MOW <b>PRO</b></span>
-  </div>
-
-  <div class="transport-controls" role="group" aria-label="Controles de transporte">
-    <button id="btn-rewind" class="transport-btn" title="Ir al inicio">⏮</button>
-    <button id="btn-stop" class="transport-btn" title="Stop">⏹</button>
-    <button id="btn-play" class="transport-btn transport-btn--accent" title="Play">▶</button>
-    <button id="btn-pause" class="transport-btn" title="Pausa">⏸</button>
-    <button id="btn-record" class="transport-btn transport-btn--record" title="Armar / Grabar">⏺</button>
-    <button id="btn-loop" class="transport-btn toggle-btn" title="Loop">⟲ LOOP</button>
-  </div>
-
-  <div class="time-display" id="time-display" title="Clic para cambiar de formato">
-    <span id="time-primary">00:00:000</span>
-    <span class="time-label" id="time-mode-label">MIN:SEG:MS</span>
-  </div>
-
-  <div class="transport-extra">
-    <div class="bpm-control">
-      <label for="bpm-input">BPM</label>
-      <input type="number" id="bpm-input" min="20" max="300" value="120" step="1">
-    </div>
-    <button id="btn-metronome" class="transport-btn toggle-btn" title="Metrónomo">♩ CLICK</button>
-    <div class="cpu-meter" title="Carga de audio / DSP">
-      <span class="cpu-label">DSP</span>
-      <div class="cpu-bar-track"><div class="cpu-bar-fill" id="cpu-bar-fill"></div></div>
-      <span class="cpu-pct" id="cpu-pct">0%</span>
-    </div>
-  </div>
-
-</header>
-
-<!-- ============ VIEW SWITCH ============ -->
-<nav class="view-switch" aria-label="Cambiar vista">
-  <button class="view-tab active" data-view="edit-view">EDIT</button>
-  <button class="view-tab" data-view="mixer-view">MIX</button>
-  <div class="view-switch-actions">
-    <button id="btn-add-track" class="ghost-btn">+ Pista</button>
-    <button id="btn-save-session" class="ghost-btn">Guardar sesión</button>
-    <button id="btn-load-session" class="ghost-btn">Abrir sesión</button>
-    <button id="btn-export" class="ghost-btn ghost-btn--accent">Exportar Mezcla</button>
-    <input type="file" id="session-file-input" accept=".json" hidden>
-  </div>
-</nav>
-
-<!-- ============ MAIN WORKSPACE ============ -->
-<main class="workspace">
-
-  <!-- ---------- EDIT VIEW (Timeline) ---------- -->
-  <section id="edit-view" class="view active" aria-label="Vista de edición">
-    <div class="edit-grid">
-
-      <!-- Fixed track header column -->
-      <div class="track-headers" id="track-headers">
-        <div class="ruler-spacer">TRACKS</div>
-        <!-- track header rows injected by JS -->
+  <div class="login-card">
+    <div class="brand">
+      <div class="brand-emblem" aria-hidden="true">
+        <svg viewBox="0 0 100 100" width="64" height="64">
+          <defs>
+            <linearGradient id="emblemGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#37c8ff"/>
+              <stop offset="100%" stop-color="#0057ff"/>
+            </linearGradient>
+          </defs>
+          <polygon points="50,3 93,26 93,74 50,97 7,74 7,26"
+                   fill="rgba(15,20,28,0.6)" stroke="url(#emblemGrad)" stroke-width="2.5"/>
+          <text x="50" y="61" text-anchor="middle" font-family="Arial, sans-serif"
+                font-weight="800" font-size="34" fill="url(#emblemGrad)">JP</text>
+        </svg>
       </div>
-
-      <!-- Scrollable timeline column -->
-      <div class="timeline-scroll" id="timeline-scroll">
-        <div class="ruler" id="ruler">
-          <div class="playhead" id="playhead-edit"></div>
-        </div>
-        <div class="track-lanes" id="track-lanes">
-          <!-- track lanes injected by JS -->
-        </div>
-      </div>
-
+      <h1 class="brand-name">MOW <span>PRO</span></h1>
+      <p class="brand-tagline">Estación de producción musical profesional</p>
     </div>
-    <p class="empty-hint" id="empty-hint">Arrastra archivos de audio (.wav / .mp3) sobre una pista, o pulsa “+ Pista” para comenzar.</p>
-  </section>
 
-  <!-- ---------- MIXER VIEW (Console) ---------- -->
-  <section id="mixer-view" class="view" aria-label="Vista de mezcla">
-    <div class="mixer-console" id="mixer-console">
-      <!-- channel strips injected by JS -->
-      <div class="channel-strip channel-strip--master" id="master-strip">
-        <div class="strip-inserts">
-          <div class="insert-slot insert-slot--label">MASTER BUS</div>
-        </div>
-        <div class="strip-meter-fader">
-          <div class="vu-meter" id="master-vu">
-            <div class="vu-fill vu-fill--l" id="master-vu-l"></div>
-            <div class="vu-fill vu-fill--r" id="master-vu-r"></div>
-          </div>
-          <input type="range" class="fader fader--vertical" id="master-fader" min="0" max="1.5" step="0.01" value="1" orient="vertical">
-        </div>
-        <div class="strip-name">MASTER</div>
-      </div>
+    <div class="auth-tabs">
+      <button id="tab-login" class="auth-tab active" type="button">Iniciar sesión</button>
+      <button id="tab-register" class="auth-tab" type="button">Crear cuenta</button>
     </div>
-  </section>
 
-</main>
+    <!-- Formulario: Iniciar sesión -->
+    <form id="form-login" class="auth-form">
+      <label class="field">
+        <span class="field-label">Correo electrónico</span>
+        <input type="email" id="login-email" placeholder="tu@estudio.com" required autocomplete="email" />
+      </label>
+      <label class="field">
+        <span class="field-label">Contraseña</span>
+        <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" />
+      </label>
+      <p class="form-error" id="login-error"></p>
+      <button type="submit" class="btn-auth">
+        <span class="btn-label">Entrar al estudio</span>
+        <span class="btn-spinner"></span>
+      </button>
+    </form>
 
-<!-- ============ PLUGIN RACK (EQ / REVERB EDITOR) ============ -->
-<div class="plugin-rack" id="plugin-rack" hidden>
-  <div class="plugin-rack__header">
-    <span id="plugin-rack-title">EQ-3</span>
-    <button id="plugin-rack-close" class="ghost-btn">✕</button>
+    <!-- Formulario: Registro -->
+    <form id="form-register" class="auth-form hidden">
+      <label class="field">
+        <span class="field-label">Correo electrónico</span>
+        <input type="email" id="register-email" placeholder="tu@estudio.com" required autocomplete="email" />
+      </label>
+      <label class="field">
+        <span class="field-label">Contraseña</span>
+        <input type="password" id="register-password" placeholder="Mínimo 6 caracteres" required autocomplete="new-password" />
+      </label>
+      <label class="field">
+        <span class="field-label">Confirmar contraseña</span>
+        <input type="password" id="register-password-confirm" placeholder="••••••••" required autocomplete="new-password" />
+      </label>
+      <p class="form-error" id="register-error"></p>
+      <button type="submit" class="btn-auth">
+        <span class="btn-label">Crear cuenta</span>
+        <span class="btn-spinner"></span>
+      </button>
+    </form>
+
+    <p class="login-footnote">Acceso protegido · Firebase Authentication</p>
   </div>
-  <div class="plugin-rack__body" id="plugin-rack-body"></div>
 </div>
 
-<footer class="status-bar">
-  <span id="status-text">Listo. MOW PRO — DAW gratuito de código abierto.</span>
-  <span id="sample-rate-text"></span>
-</footer>
+<!-- ==========================================================
+     CONSOLA PRINCIPAL DEL DAW
+     ========================================================== -->
+<div id="daw" class="hidden">
 
-<script src="js/app.js"></script>
+  <!-- ---------------- HEADER / TRANSPORT BAR ---------------- -->
+  <header class="transport-bar">
+    <div class="transport-left">
+      <div class="mini-emblem">JP</div>
+      <span class="app-title">MOW <b>PRO</b></span>
+      <input id="project-name" class="project-name-input" type="text" value="Proyecto sin título" />
+    </div>
+
+    <div class="transport-center">
+      <div class="transport-controls">
+        <button id="btn-return-zero" class="transport-btn" title="Volver a cero">⏮</button>
+        <button id="btn-stop" class="transport-btn" title="Detener">⏹</button>
+        <button id="btn-play" class="transport-btn transport-btn--play" title="Reproducir">▶</button>
+        <button id="btn-record" class="transport-btn transport-btn--record" title="Armar grabación">●</button>
+        <button id="btn-loop" class="transport-btn" title="Loop">🔁</button>
+      </div>
+
+      <div class="transport-counters">
+        <div class="counter-block">
+          <span class="counter-label">BARS | BEATS</span>
+          <span id="counter-bars" class="counter-value">001|01|000</span>
+        </div>
+        <div class="counter-divider"></div>
+        <div class="counter-block">
+          <span class="counter-label">MIN:SEC:MS</span>
+          <span id="counter-time" class="counter-value">00:00:000</span>
+        </div>
+      </div>
+
+      <div class="transport-extra">
+        <label class="bpm-control">
+          <span>BPM</span>
+          <input id="bpm-input" type="number" min="20" max="300" value="120" />
+        </label>
+        <button id="btn-metronome" class="transport-btn transport-btn--small" title="Metrónomo">🕘</button>
+        <div class="cpu-meter" title="Carga de CPU / Audio">
+          <span class="cpu-label">CPU</span>
+          <div class="cpu-bar"><div id="cpu-bar-fill" class="cpu-bar-fill"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="transport-right">
+      <div class="view-switch">
+        <button id="btn-view-edit" class="view-switch-btn active">EDIT</button>
+        <button id="btn-view-mix" class="view-switch-btn">MIX</button>
+      </div>
+      <button id="btn-save-project" class="topbar-btn" title="Guardar proyecto en la nube">💾 Guardar</button>
+      <button id="btn-load-project" class="topbar-btn" title="Cargar proyecto">📂 Abrir</button>
+      <span id="user-email-badge" class="user-badge"></span>
+      <button id="btn-logout" class="topbar-btn topbar-btn--ghost">Salir</button>
+    </div>
+  </header>
+
+  <!-- ---------------- VISTA DE EDICIÓN ---------------- -->
+  <main id="view-edit" class="view view-edit">
+    <div class="edit-toolbar">
+      <button id="btn-add-track" class="toolbar-btn">+ Nueva pista</button>
+      <span class="toolbar-hint">Arrastra un archivo de audio sobre una pista, o usa "Cargar archivo" en su tarjeta de control.</span>
+    </div>
+
+    <div class="timeline-wrapper">
+      <div class="track-header-spacer">
+        <canvas id="ruler-canvas" class="ruler-canvas"></canvas>
+      </div>
+
+      <div class="tracks-scroll-area" id="tracks-scroll-area">
+        <!-- Las tarjetas de pista + su lane con canvas se inyectan dinámicamente -->
+        <div id="tracks-container" class="tracks-container"></div>
+
+        <!-- Playhead superpuesto -->
+        <div id="playhead" class="playhead"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ---------------- VISTA DE MEZCLA ---------------- -->
+  <section id="view-mix" class="view view-mix hidden">
+    <div class="mix-console" id="mix-console">
+      <!-- Channel strips inyectados dinámicamente -->
+    </div>
+    <div class="master-strip">
+      <span class="strip-title">MASTER</span>
+      <div class="vu-meter vu-meter--master">
+        <div id="master-vu-fill" class="vu-fill"></div>
+        <div id="master-vu-peak" class="vu-peak"></div>
+      </div>
+      <input id="master-fader" class="fader" type="range" min="0" max="100" value="80" orient="vertical" />
+      <span class="strip-label">Master Bus</span>
+    </div>
+  </section>
+
+</div>
+
+<!-- Input oculto reutilizable para cargar archivos de audio -->
+<input type="file" id="file-input-hidden" accept="audio/*" class="visually-hidden" />
+
+<script type="module" src="app.js"></script>
 </body>
 </html>
